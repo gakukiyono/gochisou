@@ -1,0 +1,21 @@
+# -*- coding: utf-8 -*- 
+
+import maya.cmds as cmds
+
+def set_render_resolution():
+    # レンダリング設定ノードを取得
+    render_settings_node = "defaultResolution"
+    
+    # Image Sizeを設定
+    new_width = 1680
+    new_height = 720
+    cmds.setAttr("{}.width".format(render_settings_node), new_width)
+    cmds.setAttr("{}.height".format(render_settings_node), new_height)
+
+    # ビューポートにメッセージを表示
+    message = "Image Sizeが変更されました。新しい設定は {}x{} です。".format(new_width, new_height)
+    cmds.inViewMessage(amg=message, pos="topCenter", fade=True, fadeStayTime=2000)
+
+# 関数を呼び出してImage Sizeを設定
+set_render_resolution()
+
