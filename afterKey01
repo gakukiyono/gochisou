@@ -1,0 +1,24 @@
+# -*- coding: utf-8 -*- 
+
+import maya.cmds as cmds
+
+def select_keys_after_current():
+    # グラフエディタで選択されたカーブを取得
+    selected_curves = cmds.keyframe(q=True, sl=True, name=True)
+
+    if not selected_curves:
+        cmds.warning("キーが選択されていません。")
+        return
+
+    # 現在のフレームを取得
+    current_frame = cmds.currentTime(query=True)
+
+    # キーを選択する範囲を設定
+    keyframe_range = (current_frame, cmds.playbackOptions(q=True, maxTime=True))
+
+    # キーを選択
+    for curve in selected_curves:
+        cmds.selectKey(curve, time=keyframe_range, add=True)
+
+# 関数を呼び出してキーを選択
+select_keys_after_current()
