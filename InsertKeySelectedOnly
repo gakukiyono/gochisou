@@ -1,0 +1,21 @@
+# -*- coding: utf-8 -*- 
+
+import maya.cmds as cmds
+
+def insert_keyframe_selected_curves():
+    # グラフエディタで選択されたカーブを取得
+    selected_curves = cmds.keyframe(q=True, sl=True, name=True)
+
+    if not selected_curves:
+        cmds.warning("カーブが選択されていません。")
+        return
+
+    # 現在のタイムスライダーのフレームを取得
+    current_frame = cmds.currentTime(q=True)
+
+    # 選択されたカーブにキーを挿入
+    for curve in selected_curves:
+        cmds.setKeyframe(curve, t=current_frame)
+
+# スクリプトを実行
+insert_keyframe_selected_curves()
