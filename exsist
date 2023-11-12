@@ -1,0 +1,19 @@
+import maya.cmds as cmds
+
+def scale_controller(target_controller, scale_factor):
+    # コントローラが存在するか確認
+    if cmds.objExists(target_controller):
+        # コントローラのスケールを変更
+        cmds.scale(scale_factor, scale_factor, scale_factor, target_controller)
+        print(f"{target_controller} のスケールを {scale_factor} 倍に変更しました。")
+    else:
+        print(f"{target_controller} は存在しません。処理をスキップします。")
+
+# 確認するコントローラの名前とスケール倍率
+target_controller = "pCube1"  # ここに確認したいコントローラの名前を指定してください
+scale_factor = 5
+
+# コントローラの存在確認とスケール変更
+scale_controller(target_controller, scale_factor)
+
+# ここから次の処理を追加してください
