@@ -1,0 +1,43 @@
+import maya.cmds as cmds
+
+# シーン内のすべてのオブジェクトを取得
+all_objects = cmds.ls(dag=True, long=True)
+
+# "gaku" が含まれるオブジェクトを選択
+gaku_controllers = [obj for obj in all_objects if "gaku" in obj]
+if gaku_controllers:
+    cmds.select(gaku_controllers, replace=True)
+else:
+    print("No controllers with 'gaku' in the name found.")
+
+
+
+def is_in_animation_layer(controller):
+    # 選択されたオブジェクトがアニメーションレイヤーに含まれているか確認
+    anim_layers = cmds.ls(type='animLayer')
+    for anim_layer in anim_layers:
+        anim_curves = cmds.animLayer(anim_layer, query=True, c=True) or []
+        for anim_curve in anim_curves:
+            anim_curve_nodes = cmds.listConnections(anim_curve, d=False, s=True) or []
+            if controller in anim_curve_nodes:
+                return True
+    return False
+
+# 選択されたオブジェクトを取得
+selected_objects = cmds.ls(selection=True)
+
+if selected_objects:
+    for obj in selected_objects:
+        if is_in_animation_layer(obj):
+            print(f"{obj} はアニメーションレイヤーに含まれています。処理を中断します。")
+            break
+    else:
+        # アニメーションレイヤーに含まれているオブジェクトがない場合の処理
+        print("すべての選択オブジェクトはアニメーションレイヤーに含まれていません。続行します。")
+else:
+    print("何も選択されていません。")
+
+
+#残りの処理を追記
+
+
