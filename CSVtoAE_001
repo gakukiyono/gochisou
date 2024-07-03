@@ -1,0 +1,19 @@
+一応CSVから情報を抜いて字幕を作れたやつ
+
+var filePath = "C:/Users/gkiyo/Dropbox/My PC (DESKTOP-330RSOQ)/Desktop/ToAEtest/ExToAE002.csv"; // ここをCSVファイルのパスに変更
+
+var file = new File(filePath);
+file.open("r");
+
+var comp = app.project.items.addComp("Text Comp", 1920, 1080, 1, 10, 30);
+var lineHeight = 100;
+var yOffset = 0;
+
+while (!file.eof) {
+    var line = file.readln();
+    var textLayer = comp.layers.addText(line);
+    textLayer.property("Position").setValue([960, 540 + yOffset]);
+    yOffset += lineHeight;
+}
+
+file.close();
