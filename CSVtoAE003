@@ -1,0 +1,63 @@
+// ユーザーにファイルを選択してもらう
+var filePath = File.openDialog("ファイルを選択してください", "All files:*.*;CSV files:*.csv", false);
+
+if (filePath === null) {
+    alert("ファイルが選択されませんでした。");
+} else {
+    // CSVファイルを開く。open(r)は読み込みモード
+    var file = new File(filePath);
+    file.open("r");
+
+    // 現在のコンポジションを取得
+    var comp = app.project.activeItem;
+
+    if (!(comp instanceof CompItem)) {
+        alert("現在開いているコンポジションが見つかりません。コンポジションを選択してください。");
+    } else {
+        // テキストレイヤーの縦の間隔
+        var lineHeight = 100;
+        // テキストレイヤーのY座標のオフセット
+        var yOffset = 0;
+
+        // Whileはループ
+        while (!file.eof) {
+            // ファイルから一行ずつ読み込む
+            var line = file.readln();
+            // 読み込んだ行をカンマで分割
+            var columns = line.split(",");
+            if (columns.length < 3) {
+                alert("行に3つ以上の列がありません: " + line);
+                continue;
+            }
+            // 1番目の要素をスタートフレーム、2番目の要素をエンドフレーム、3番目の要素をテキストとして取得
+            var startFrame = parseInt(columns[0], 10);
+            var endFrame = parseInt(columns[1], 10);
+            var text = columns[2];
+
+            // フレーム数を秒数に変換
+            var startTime = startFrame / 60.0;
+            var endTime = endFrame / 60.0;
+
+            // 読み込んだテキストを含む新しいテキストレイヤーをコンポジションに追加
+            var textLayer = comp.layers.addText(text);
+            // テキストレイヤーの位置を指定
+            textLayer.property("Position").setValue([960, 970]);
+
+            // テキストプロパティを取得
+            var textProp = textLayer.property("Source Text");
+            var textDocument = textProp.value;
+
+            // テキストのデザインを設定
+            textDocument.fillColor = [1, 1, 1];
+            textDocument.fontSize = 40;
+            textProp.setValue(textDocument);
+
+            // テキストの長さを指定
+            textLayer.inPoint = startTime;
+            textLayer.outPoint = endTime;
+        }
+
+        // ファイルを閉じる
+        file.close();
+    }
+}
