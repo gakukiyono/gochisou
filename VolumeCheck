@@ -1,0 +1,125 @@
+{
+    // 音量の閾値を設定
+    var lowThresholdMin = 3.0;  // 低音量の下限 (例: 3以上)
+    var lowThresholdMax = 6.0;  // 低音量の上限 (例: 6未満)
+    var highThreshold = 6.0;    // 高音量の下限 (例: 6以上)
+
+    var comp = app.project.activeItem;
+    if (comp && comp instanceof CompItem) {
+        app.beginUndoGroup("Insert Text for Volume Ranges");
+
+        // 「オーディオ振幅」レイヤーを取得
+        var audioAmplitudeLayer = comp.layer("オーディオ振幅");
+
+        if (audioAmplitudeLayer) {
+            var effects = audioAmplitudeLayer.property("エフェクト");
+            if (effects) {
+                var bothChannels = effects.property("両方のチャンネル");
+                if (bothChannels) {
+                    var leftChannel = bothChannels.property("スライダー");
+
+                    if (leftChannel) {
+                        // キーフレーム数を取得
+                        var keyframeCount = leftChannel.numKeys;
+
+                        var inLowVolume = false;  // 低音量範囲かどうかのフラグ
+                        var inHighVolume = false; // 高音量範囲かどうかのフラグ
+                        var rangeStart = 0;       // 範囲の開始時間
+                        var lastTime = 0;         // 最後のチェック時間
+
+                        for (var i = 1; i <= keyframeCount; i++) {
+                            var time = leftChannel.keyTime(i);
+                            var amplitudeValue = leftChannel.keyValue(i);
+
+                            // 音量範囲に基づいた処理
+                            if (amplitudeValue >= lowThresholdMin && amplitudeValue < lowThresholdMax) {
+                                if (!inLowVolume) {
+                                    if (inHighVolume) {
+                                        // 高音量の範囲を終了したタイミングで「high」テキストレイヤーを追加
+                                        inHighVolume = false;
+                                        var rangeEnd = time;
+                                        var textLayer = comp.layers.addText("high");
+                                        textLayer.startTime = rangeStart;
+                                        textLayer.inPoint = rangeStart;
+                                        textLayer.outPoint = rangeEnd;
+                                        textLayer.position.setValue([comp.width / 2, comp.height / 2]);
+                                    }
+                                    // 低音量の範囲に初めて入ったタイミングを記録
+                                    inLowVolume = true;
+                                    rangeStart = time;
+                                }
+                            } else if (amplitudeValue >= highThreshold) {
+                                if (!inHighVolume) {
+                                    if (inLowVolume) {
+                                        // 低音量の範囲を終了したタイミングで「low」テキストレイヤーを追加
+                                        inLowVolume = false;
+                                        var rangeEnd = time;
+                                        var textLayer = comp.layers.addText("low");
+                                        textLayer.startTime = rangeStart;
+                                        textLayer.inPoint = rangeStart;
+                                        textLayer.outPoint = rangeEnd;
+                                        textLayer.position.setValue([comp.width / 2, comp.height / 2]);
+                                    }
+                                    // 高音量の範囲に初めて入ったタイミングを記録
+                                    inHighVolume = true;
+                                    rangeStart = time;
+                                }
+                            } else {
+                                // 音量がどの範囲にも該当しない場合
+                                if (inLowVolume) {
+                                    inLowVolume = false;
+                                    var rangeEnd = time;
+                                    var textLayer = comp.layers.addText("low");
+                                    textLayer.startTime = rangeStart;
+                                    textLayer.inPoint = rangeStart;
+                                    textLayer.outPoint = rangeEnd;
+                                    textLayer.position.setValue([comp.width / 2, comp.height / 2]);
+                                }
+                                if (inHighVolume) {
+                                    inHighVolume = false;
+                                    var rangeEnd = time;
+                                    var textLayer = comp.layers.addText("high");
+                                    textLayer.startTime = rangeStart;
+                                    textLayer.inPoint = rangeStart;
+                                    textLayer.outPoint = rangeEnd;
+                                    textLayer.position.setValue([comp.width / 2, comp.height / 2]);
+                                }
+                            }
+                        }
+
+                        // 最後に範囲が終了していない場合の処理
+                        if (inLowVolume) {
+                            var rangeEnd = comp.duration;
+                            var textLayer = comp.layers.addText("low");
+                            textLayer.startTime = rangeStart;
+                            textLayer.inPoint = rangeStart;
+                            textLayer.outPoint = rangeEnd;
+                            textLayer.position.setValue([comp.width / 2, comp.height / 2]);
+                        }
+                        
+                        if (inHighVolume) {
+                            var rangeEnd = comp.duration;
+                            var textLayer = comp.layers.addText("high");
+                            textLayer.startTime = rangeStart;
+                            textLayer.inPoint = rangeStart;
+                            textLayer.outPoint = rangeEnd;
+                            textLayer.position.setValue([comp.width / 2, comp.height / 2]);
+                        }
+                    } else {
+                        alert("スライダープロパティが見つかりません。");
+                    }
+                } else {
+                    alert("両方のチャンネルプロパティが見つかりません。");
+                }
+            } else {
+                alert("エフェクトプロパティが見つかりません。");
+            }
+        } else {
+            alert("「オーディオ振幅」レイヤーが見つかりません。");
+        }
+
+        app.endUndoGroup();
+    } else {
+        alert("コンポジションを選択してください");
+    }
+}
